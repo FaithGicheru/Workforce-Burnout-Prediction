@@ -75,10 +75,10 @@ A rule-based engine with 10 workplace rules generates personalised, prioritised 
 
 | Priority | Count | % of Workforce |
 |---|---|---|
-| 🔴 CRITICAL | 170 | 11.6% |
-| 🟠 HIGH | 510 | 34.7% |
-| 🟡 MODERATE | 376 | 25.6% |
-| 🟢 WATCH | 414 | 28.2% |
+|  CRITICAL | 170 | 11.6% |
+|  HIGH | 510 | 34.7% |
+|  MODERATE | 376 | 25.6% |
+|  WATCH | 414 | 28.2% |
 
 **46.3% of the workforce** (CRITICAL + HIGH) requires active, near-term HR intervention.
 
