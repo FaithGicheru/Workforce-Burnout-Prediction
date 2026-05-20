@@ -113,3 +113,17 @@ Upload `WA_Fn-UseC_-HR-Employee-Attrition.csv` from the sidebar. The pipeline tr
 - Add SHAP explanations so HR teams can audit individual predictions
 - Retrain models quarterly as new employee data is collected
 - Validate burnout scoring rules with HR domain experts
+
+## This project can be useful for:
+
+HR analytics portfolios
+Workforce analytics demonstrations
+Employee wellbeing research
+Predictive analytics case studies
+Organizational health monitoring
+
+## Conclusion
+
+This project demonstrates how workforce analytics and machine learning can be applied to employee wellbeing challenges.
+
+By identifying burnout risk early and supporting proactive intervention strategies, organizations can improve retention, employee health outcomes, and operational performance.
