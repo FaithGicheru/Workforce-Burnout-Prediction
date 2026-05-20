@@ -126,6 +126,21 @@ Predictive analytics case studies
 
 Organizational health monitoring
 
+## Business impact
+
+Potential organizational benefits include:
+
+Reduced employee turnover
+
+Improved workforce planning
+
+Lower burnout-related productivity losses
+
+Better employee wellbeing strategies
+
+More informed HR decision-making
+
+
 ## Conclusion
 
 This project demonstrates how workforce analytics and machine learning can be applied to employee wellbeing challenges.
