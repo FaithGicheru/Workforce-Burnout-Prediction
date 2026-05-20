@@ -1,216 +1,115 @@
-# Workforce Burnout Prediction & HR Intervention System
+# Workforce Burnout Prediction, Sick-Day Forecasting & HR Intervention System
 
-## Project Overview
-
-This project explores how workforce analytics and predictive modeling can be used to identify employee burnout risk, forecast absenteeism patterns, and support proactive HR interventions.
-
-Using the IBM HR Analytics Employee Attrition dataset, the analysis combines exploratory data analysis, feature engineering, machine learning, and business intelligence techniques to uncover patterns associated with employee wellbeing and organizational risk.
-
-The project was designed to demonstrate how organizations can move from reactive employee management to data-driven workforce support.
+**Moringa School Data Science Capstone — 2025/26**  
+Team: Faith Ng'endo, Alan Muchiri, William Nyawir, Sarah Owendi, Anthony Njeru  
+Dataset: IBM HR Analytics Employee Attrition & Performance (1,470 employees, 35 features)
 
 ---
 
-# Objectives
+## Overview
 
-The main goals of the project were to:
-
-* Identify employees at risk of burnout
-* Analyze workplace factors contributing to stress and disengagement
-* Predict absenteeism and sick-day trends
-* Build a recommendation system for HR interventions
-* Provide actionable workforce insights for decision-makers
+This project builds a three-stage machine learning pipeline that identifies at-risk employees, forecasts absenteeism, and recommends targeted HR actions — all from standard HR data.
 
 ---
 
-# Dataset Information
+## Project Structure
 
-## Dataset Used
-
-IBM HR Analytics Employee Attrition & Performance Dataset
-
-## Dataset Characteristics
-
-* 1,470 employee records
-* 35 workforce-related features
-* Structured tabular dataset
-
-## Example Features
-
-* Age
-* Department
-* Job Role
-* Monthly Income
-* Overtime
-* Job Satisfaction
-* Environment Satisfaction
-* Work-Life Balance
-* Years at Company
-* Business Travel
-* Attrition
+```
+Burnout_Prediction/
+├── Data/
+│   ├── WA_Fn-UseC_-HR-Employee-Attrition.csv   # Raw IBM HR dataset
+│   └── hr_cleaned_stage2.csv                    # Cleaned output from Stage 1
+├── main.ipynb                                   # Full modelling notebook (Stages 1–3)
+├── app.py                                       # Streamlit dashboard
+├── requirements.txt
+└── README.md
+```
 
 ---
 
-# Project Workflow
+## The Three Stages
 
-## 1. Data Loading & Inspection
+### Stage 1 — Burnout Risk Classification
 
-The notebook begins by:
+A `BurnoutRisk` target variable (Low / Medium / High) is engineered using a scoring function based on overtime, job satisfaction, work-life balance, environment satisfaction, income, and tenure. Two classifiers are trained and compared on an 80/20 stratified split.
 
-* Importing required Python libraries
-* Loading the dataset
-* Inspecting data structure and feature types
-* Checking dataset dimensions
+| Model | Accuracy | F1-Score (macro) |
+|---|---|---|
+| Logistic Regression | 86.05% | 0.8525 |
+| Random Forest | 94.56% | 0.9033 |
 
-## 2. Data Cleaning
+Random Forest is the production model for Stage 1. Feature importance confirms the five engineered scoring features (EnvironmentSatisfaction, JobSatisfaction, OverTime, WorkLifeBalance, MonthlyIncome) are the top predictors.
 
-Data preprocessing steps included:
+### Stage 2 — Sick-Day Forecasting
 
-* Checking for missing values
-* Detecting duplicates
-* Verifying data consistency
-* Preparing variables for analysis
+Since the dataset contains no absenteeism records, a synthetic `SickDays` target is constructed from the same stress indicators used in Stage 1. Three regression models are compared.
 
-## 3. Exploratory Data Analysis (EDA)
+| Model | MAE (days) | R² Score |
+|---|---|---|
+| Linear Regression | 0.9599 | 0.8581 |
+| Random Forest | 0.2595 | 0.9799 |
+| XGBoost | 0.1282 | 0.9920 |
 
-The analysis explored:
+XGBoost is the best performer. The high R² reflects the synthetic target — real sick-day records would produce a harder problem.
 
-* Burnout-related trends
-* Employee attrition patterns
-* Overtime behavior
-* Satisfaction metrics
-* Income distribution
-* Workforce segmentation
+### Stage 3 — HR Intervention Recommendations
 
-Visualizations were used to identify relationships between employee wellbeing indicators and organizational outcomes.
+A rule-based engine assigns each employee a priority level and a personalised list of interventions based on 10 workplace rules. No ML model is used here; the logic mirrors the burnout scoring from Stage 1.
 
-## 4. Feature Engineering
+| Priority | Count | Share |
+|---|---|---|
+| CRITICAL | 170 | 11.6% |
+| HIGH | 510 | 34.7% |
+| MODERATE | 376 | 25.6% |
+| WATCH | 414 | 28.2% |
 
-Custom workforce indicators were developed, including:
-
-* Burnout risk scores
-* Employee risk categories
-* HR intervention priority groups
-* Simulated sick-day forecasting variables
-
-## 5. Predictive Modeling
-
-Machine learning models were applied to:
-
-* Predict burnout risk
-* Forecast absenteeism trends
-* Identify employees requiring intervention
-
-## 6. Recommendation System
-
-The project generated HR recommendations based on employee risk levels.
-
-Examples include:
-
-* Wellness support
-* Workload adjustment
-* Flexible scheduling
-* Manager check-ins
-* Mental health interventions
+The five most commonly recommended actions are overtime reduction, flexible scheduling, compensation review, EAP access, and peer-recognition programmes.
 
 ---
 
-# Key Insights
+## Feature Engineering
 
-## Burnout Risk Is Widespread
-
-A large portion of employees displayed moderate burnout indicators, suggesting a need for proactive workforce support.
-
-## Overtime Strongly Influences Burnout
-
-Employees working overtime consistently showed higher burnout risk levels.
-
-## Work-Life Balance Matters
-
-Poor work-life balance was closely associated with stress and disengagement.
-
-## Burnout and Attrition Are Connected
-
-Employees with higher burnout risk were more likely to leave the organization.
-
-## Predictive Analytics Can Support HR
-
-The project demonstrates that workforce data can help identify at-risk employees before productivity and retention are affected.
+The original dataset has no burnout column. `BurnoutRisk` is constructed by scoring each employee across six stress indicators (max score = 12): scores >= 5 → High, 2–4 → Medium, 0–1 → Low.
 
 ---
 
-# Technologies Used
+## Setup
 
-## Programming Language
+```bash
+git clone <repo-url>
+cd Burnout_Prediction
+pip install -r requirements.txt
+```
 
-* Python
+To run the notebook:
+```bash
+jupyter notebook main.ipynb
+```
 
-## Libraries
+To run the Streamlit dashboard:
+```bash
+streamlit run app.py
+```
+Upload `WA_Fn-UseC_-HR-Employee-Attrition.csv` from the sidebar. The pipeline trains live on upload — no pre-saved models required.
 
-* Pandas
-* NumPy
-* Matplotlib
-* Seaborn
-* Scikit-learn
+## Demo
 
-## Environment
-
-* Jupyter Notebook
-
----
-
-# Machine Learning Components
-
-The notebook includes predictive analytics techniques such as:
-
-* Classification modeling
-* Risk scoring
-* Workforce segmentation
-* Forecasting simulations
-
-The focus of the project is explainability and business application rather than model complexity.
+[https://burnoutprediction.streamlit.app/](https://burnoutprediction.streamlit.app/)
 
 ---
 
-# Business Impact
+## Key Findings
 
-Potential organizational benefits include:
+- Overtime and low compensation are not just individual risk factors — they affect over 400 employees each and require organisation-level policy responses.
+- 46% of the workforce (CRITICAL + HIGH) needs active HR attention based on current conditions.
+- Random Forest and XGBoost both confirm that burnout cannot be captured by linear patterns alone; interaction effects between satisfaction scores and overtime status are significant.
 
-* Reduced employee turnover
-* Improved workforce planning
-* Lower burnout-related productivity losses
-* Better employee wellbeing strategies
-* More informed HR decision-making
+---
 
-# Example Use Cases
 
-This project can be useful for:
+## Next Steps
 
-* HR analytics portfolios
-* Workforce analytics demonstrations
-* Employee wellbeing research
-* Predictive analytics case studies
-* Organizational health monitoring
-* Data science portfolio projects
-
-# Future Improvements
-
-Potential future enhancements include:
-
-* Real-time dashboard integration
-* Advanced predictive models
-* Deep learning approaches
-* Employee sentiment analysis
-* Live HR monitoring systems
-* Integration with enterprise HR platforms
-
-# Conclusion
-
-This project demonstrates how workforce analytics and machine learning can be applied to employee wellbeing challenges.
-
-By identifying burnout risk early and supporting proactive intervention strategies, organizations can improve retention, employee health outcomes, and operational performance.
-
-jupyter notebook
-
-non tech presentation
-
-tableau dashboard
+- Collect real sick-day records for a more robust regression model
+- Add SHAP explanations so HR teams can audit individual predictions
+- Retrain models quarterly as new employee data is collected
+- Validate burnout scoring rules with HR domain experts
