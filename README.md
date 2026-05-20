@@ -117,9 +117,13 @@ Upload `WA_Fn-UseC_-HR-Employee-Attrition.csv` from the sidebar. The pipeline tr
 ## This project can be useful for:
 
 HR analytics portfolios
+
 Workforce analytics demonstrations
+
 Employee wellbeing research
+
 Predictive analytics case studies
+
 Organizational health monitoring
 
 ## Conclusion
