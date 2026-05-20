@@ -1,0 +1,14 @@
+# Render.com deployment configuration for Streamlit app
+
+# If using render.yaml, save as render.yaml in repo root
+# Then connect to Render and it auto-deploys
+
+services:
+  - type: web
+    name: burnout-prediction
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.7
