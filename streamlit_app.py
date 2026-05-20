@@ -20,7 +20,11 @@ st.markdown("---")
 # -------------------------
 # LOAD MODEL
 # -------------------------
-model = joblib.load("burnout_model.pkl")
+try:
+    model = joblib.load("burnout_model.pkl")
+except FileNotFoundError:
+    st.error("❌ Model file 'burnout_model.pkl' not found. Please upload the model.")
+    st.stop()
 
 # -------------------------
 # LOAD DATA
@@ -90,7 +94,9 @@ if page == "Dashboard":
     with col2:
         st.subheader("Age Distribution")
         fig, ax = plt.subplots()
-        ax.hist(df['Age'], bins=20)
+        ax.hist(df['Age'], bins=20, edgecolor='black')
+        ax.set_xlabel("Age")
+        ax.set_ylabel("Frequency")
         st.pyplot(fig)
 
 # -------------------------
@@ -99,23 +105,30 @@ if page == "Dashboard":
 elif page == "Data Analysis":
     st.header("🔍 Data Exploration")
 
-    st.write("Shape:", df.shape)
-    st.dataframe(df.head())
+    st.write("**Dataset Shape:**", df.shape)
+    st.dataframe(df.head(), use_container_width=True)
 
     st.subheader("Summary Statistics")
-    st.dataframe(df.describe())
+    st.dataframe(df.describe(), use_container_width=True)
 
 # -------------------------
-# MODEL INFO (SAFE VERSION)
+# MODEL INFO
 # -------------------------
 elif page == "Model Info":
     st.header("🤖 Model Information")
 
-    st.info("This app uses a pre-trained RandomForest model loaded from burnout_model.pkl")
+    st.info("This app uses a pre-trained RandomForest model loaded from `burnout_model.pkl`")
 
-    st.write("Model type:", type(model).__name__)
+    st.write("**Model Type:**", type(model).__name__)
 
-    st.warning("Feature importance and evaluation metrics are not available unless saved during training.")
+    # Try to show model info if available
+    if hasattr(model, 'feature_names_in_'):
+        st.write("**Expected Features:**", list(model.feature_names_in_))
+    
+    if hasattr(model, 'n_estimators'):
+        st.write("**Number of Trees:**", model.n_estimators)
+
+    st.warning("⚠️ Feature importance and evaluation metrics are not available unless saved during training.")
 
 # -------------------------
 # PREDICTION
@@ -126,46 +139,78 @@ elif page == "Make Prediction":
     col1, col2 = st.columns(2)
 
     with col1:
+        st.subheader("Personal Information")
         age = st.slider("Age", 18, 65, 30)
-        income = st.slider("Monthly Income", 1000, 20000, 5000, 500)
-        years = st.slider("Years at Company", 0, 40, 5)
+        income = st.slider("Monthly Income ($)", 1000, 20000, 5000, 500)
+        years_company = st.slider("Years at Company", 0, 40, 5)
+        years_role = st.slider("Years in Current Role", 0, 30, 2)
 
     with col2:
-        department = st.selectbox("Department", df['Department'].unique())
-        job_role = st.selectbox("Job Role", df['JobRole'].unique())
-        satisfaction = st.slider("Job Satisfaction", 1, 4, 2)
+        st.subheader("Work Environment")
+        department = st.selectbox("Department", sorted(df['Department'].unique()))
+        job_role = st.selectbox("Job Role", sorted(df['JobRole'].unique()))
+        
+    col3, col4 = st.columns(2)
+    
+    with col3:
+        st.subheader("Satisfaction & Balance")
+        job_satisfaction = st.slider("Job Satisfaction (1=Low, 4=High)", 1, 4, 2)
+        work_life_balance = st.slider("Work-Life Balance (1=Low, 4=High)", 1, 4, 2)
+    
+    with col4:
+        environment_satisfaction = st.slider("Environment Satisfaction (1=Low, 4=High)", 1, 4, 2)
 
-    if st.button("Predict"):
+    if st.button("🎯 Predict Burnout Risk", use_container_width=True):
         try:
-            input_df = pd.DataFrame([{
+            # Create input dataframe with all required features
+            input_data = {
                 "Age": age,
                 "MonthlyIncome": income,
-                "YearsAtCompany": years,
-                "JobSatisfaction": satisfaction,
+                "YearsAtCompany": years_company,
+                "YearsInCurrentRole": years_role,
+                "JobSatisfaction": job_satisfaction,
+                "WorkLifeBalance": work_life_balance,
+                "EnvironmentSatisfaction": environment_satisfaction,
                 "Department": department,
                 "JobRole": job_role
-            }])
+            }
+            
+            input_df = pd.DataFrame([input_data])
 
-            # FIX: encode categorical properly for model
-            input_df = pd.get_dummies(input_df)
+            # One-hot encode categorical variables
+            input_df = pd.get_dummies(input_df, columns=['Department', 'JobRole'], drop_first=False)
 
-            # align with model training features
-            input_df = input_df.reindex(columns=model.feature_names_in_, fill_value=0)
-
+            # Get expected features from model
+            if hasattr(model, 'feature_names_in_'):
+                expected_features = model.feature_names_in_
+                # Align with model's training features
+                input_df = input_df.reindex(columns=expected_features, fill_value=0)
+            
+            # Make prediction
             prediction = model.predict(input_df)[0]
             proba = model.predict_proba(input_df)[0]
 
             st.markdown("---")
 
+            # Display results
             if prediction == 1:
-                st.error(f"⚠️ HIGH BURNOUT RISK ({proba[1]:.1%})")
+                st.error(f"⚠️ **HIGH BURNOUT RISK** - {proba[1]:.1%} probability")
             else:
-                st.success(f"✅ LOW BURNOUT RISK ({proba[0]:.1%})")
+                st.success(f"✅ **LOW BURNOUT RISK** - {proba[0]:.1%} probability")
 
-            st.info(f"Model Confidence: {max(proba):.1%}")
+            st.info(f"**Model Confidence:** {max(proba):.1%}")
+            
+            # Show prediction breakdown
+            st.write("**Prediction Details:**")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Low Risk Probability", f"{proba[0]:.1%}")
+            with col2:
+                st.metric("High Risk Probability", f"{proba[1]:.1%}")
 
         except Exception as e:
-            st.error(f"Prediction error: {e}")
+            st.error(f"❌ Prediction error: {str(e)}")
+            st.info("Make sure all features match the model's training data.")
 
 # -------------------------
 # FOOTER
